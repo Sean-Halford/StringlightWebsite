@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stringlight - 具身智能教育平台</title>
+    <link rel="icon" href="images/logo32x32.png" type="image/png">
+    <style>
+        /* --- 1. 新增 Canvas 样式 --- */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* 确保背景在所有内容后面 */
+            background-color: #f4f6f8; /* 默认浅灰背景，防止JS未加载时白屏 */
+        }
+        /* --- 全局变量与重置 --- */
+        :root {
+            --primary-color: #ffb700;
+            --secondary-color: #2c2c63;
+            --accent-green: #33db00;
+            --text-color: #4b5056;
+            --light-bg: #f4f6f8;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; color: var(--text-color); line-height: 1.6; }
+        a { text-decoration: none; color: inherit; transition: 0.3s; }
+        ul { list-style: none; }
+
+        /* --- 导航栏 --- */
+
+        /* --- 导航栏 Logo 图片样式 --- */
+        .nav-logo-img {
+            /* 限制高度是导航栏Logo最佳的缩放方式 */
+            /* 如果原图很大，设置高度会自动按比例缩小宽度 */
+            height: 35px; 
+            width: auto; 
+            
+            /* 图片与文字的间距 */
+            margin-right: 10px; 
+            
+            /* 确保图片垂直居中 */
+            display: block; 
+            object-fit: contain;
+        }
+
+        /* 移动端适配：手机上稍微改小一点 */
+        @media (max-width: 768px) {
+            .nav-logo-img {
+                height: 30px;
+            }
+        }
+
+
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo span { color: var(--primary-color); }
+
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        
+        .nav-links a {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-links a:hover { color: var(--primary-color); }
+
+        /* 购买按钮 */
+        .cta-btn {
+            background-color: var(--accent-green);
+            color: white !important;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+        .cta-btn:hover { background-color: #2ab800; transform: translateY(-2px); }
+
+        /* 登录按钮样式 */
+        .login-btn {
+            cursor: pointer;
+            border: 2px solid var(--secondary-color);
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+        .login-btn:hover {
+            background-color: var(--secondary-color);
+            color: white !important;
+        }
+
+
+
+        /* --- 登录后的用户头像样式 (带下拉菜单) --- */
+        .user-profile {
+            display: none; /* 默认隐藏，由JS控制 */
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            position: relative; /* 为了定位下拉菜单 */
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--secondary-color);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* 下拉菜单 (登出按钮) */
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 10px;
+            min-width: 120px;
+            z-index: 1001;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        /* 鼠标悬停显示下拉菜单 */
+        .user-profile:hover .user-dropdown {
+            display: flex;
+        }
+
+        .dropdown-item {
+            padding: 8px 12px;
+            font-size: 14px;
+            color: var(--text-color);
+            border-radius: 4px;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .dropdown-item:hover {
+            background-color: #eee;
+            color: var(--secondary-color);
+        }
+        .logout-btn { color: #ff4d4f; }
+
+
+        /* --- 弹窗 (Modal) 样式 --- */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 2000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0,0,0,0.5); 
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+            position: relative;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .close-modal:hover { color: var(--secondary-color); }
+
+        .modal h2 { text-align: center; color: var(--secondary-color); margin-bottom: 20px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            outline: none;
+            transition: 0.3s;
+        }
+        .form-group input:focus { border-color: var(--primary-color); }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .submit-btn:hover { background-color: #1a1a3d; }
+
+        .modal-footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #888;
+        }
+        .modal-footer a { color: var(--primary-color); font-weight: bold; }
+
+        /* --- 移动端汉堡菜单 --- */
+        .hamburger { display: none; font-size: 24px; cursor: pointer; }
+
+        /* --- Hero 区域 --- */
+
+        /* --- Hero 区域视频背景样式 --- */
+
+        /* 1. Hero 容器基础设置 */
+        .hero {
+            position: relative; /* 关键：作为子元素定位的参考点 */
+            width: 100%;
+            height: 100vh; /* 建议：设置为全屏高度，或者保持原来的 padding */
+            min-height: 600px;
+            display: flex;
+            align-items: center; /* 垂直居中 */
+            justify-content: center;
+            overflow: hidden; /* 防止视频溢出 */
+            color: var(--white);
+            text-align: center;
+            /* 删除原来的 background-image 和 background-color，交给视频处理 */
+        }
+
+        /* 2. 视频样式 */
+        .hero-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 关键：保证视频铺满且不变形，类似 background-size: cover */
+            z-index: 1; /* 最底层 */
+        }
+
+        /* 3. 遮罩层样式 (让视频变暗，突出文字) */
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(44, 44, 99, 0.6) 0%, rgba(26, 26, 61, 0.8) 100%);
+            z-index: 2; 
+        } 
+
+        
+
+        /* 4. 内容层样式 (提升层级) */
+        .hero-content {
+            position: relative;
+            z-index: 3; /* 在遮罩之上，确保可点击 */
+        }
+
+        /* 保持原有的标题和按钮样式不变 */
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3); /* 加一点阴影更清晰 */
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            /* 如果手机端不想加载视频以节省流量，可以取消注释下面这行 */
+            /* .hero-video { display: none; } .hero { background-image: url('images/hero-bg.jpg'); background-size: cover; } */
+        }
+
+        /* .hero {
+            background-color: var(--secondary-color);
+            color: var(--white);
+            padding: 160px 20px 100px;
+            text-align: center;
+
+            background-image: linear-gradient(135deg, rgba(44, 44, 99, 0.9) 0%, rgba(26, 26, 61, 0.95) 100%);
+            background-size: cover;
+            background-position: center;
+        } */
+
+        .hero h1 { font-size: 3.5rem; margin-bottom: 20px; }
+        .hero p { font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9; }
+        .hero-buttons { display: flex; justify-content: center; gap: 20px; }
+        .btn { padding: 12px 30px; border-radius: 50px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .btn-primary { background-color: var(--primary-color); color: var(--secondary-color); }
+        .btn-outline { border: 2px solid var(--white); color: var(--white); }
+        .btn-outline:hover { background-color: var(--white); color: var(--secondary-color); }
+
+        
+        /* --- 通用板块样式 --- */
+        .section { padding: 80px 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .section-title { text-align: center; margin-bottom: 60px; }
+        .section-title h2 { font-size: 2.5rem; color: var(--secondary-color); margin-bottom: 10px; }
+        .section-title p { color: #888; font-size: 1.1rem; }
+        .section {
+            background-color: rgba(255, 255, 255, 0.8); /* 默认白色背景也变半透明 */
+        }
+
+        /* --- 网格与卡片 --- */
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        .card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            border: 1px solid #eee;
+        }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
+        .card-icon { font-size: 50px; margin-bottom: 20px; display: block; }
+        .card h3 { margin-bottom: 15px; color: var(--secondary-color); }
+
+        /* --- 特殊区域颜色 --- */
+        .bg-light { 
+            background-color: rgba(244, 246, 248, 0.85); /* 半透明浅色 */
+            /* background-color: var(--light-bg);  */
+        }
+
+        /* --- 编程 (Feature Rows) --- */
+        .feature-row { display: flex; align-items: center; gap: 50px; margin-bottom: 80px; }
+        .feature-row:nth-child(even) { flex-direction: row-reverse; }
+        .feature-text { flex: 1; }
+        .feature-img {
+            flex: 1;
+            background-color: #ddd; /* 图片占位色 */
+            height: 300px;
+            border-radius: 20px;
+            overflow: hidden; /* 确保图片圆角 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 1.5rem;
+        }
+        /* 图片样式：适应容器 */
+        .feature-img img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- 社区 Banner --- */
+        .community-banner { background-color: var(--accent-green); color: white; border-radius: 20px; padding: 60px; text-align: center; }
+
+        /* --- Footer --- */
+        /* footer {  */
+            /* background-color: var(--secondary-color); color: #ccc; padding: 50px 20px; text-align: center;  */
+                /* background-color: #a9f891;  */
+                /* color: #181717; */
+                /* padding: 60px 20px; */
+                /* text-align: center; */
+        /* } */
+        /* footer p { margin-top: 20px; font-size: 0.9rem; } */
+
+        /* --- 页脚样式 (已更新背景图) --- */
+        footer {
+            background-image: url('images/website_background.png');
+            
+            /* 2. 背景图显示方式：铺满、居中、不重复 */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #5c5555;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        /* --- 媒体查询 (Mobile) --- */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: white;
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            }
+            .nav-links.active { display: flex; }
+            .hamburger { display: block; }
+            .hero h1 { font-size: 2.5rem; }
+            .feature-row { flex-direction: column; }
+            .feature-row:nth-child(even) { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- 导航栏 -->
+    <header>
+        <nav>
+            <div class="logo">
+                <!-- 在这里添加了 img 标签 -->
+                <img src="images/logo.png" alt="Stringlight Logo" class="nav-logo-img">
+                String<span>light</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#mechanical">🔧 机械</a></li>
+                <li><a href="#programming">💻 编程</a></li>
+                <li><a href="#design">🎨 设计</a></li>
+                <li><a href="community.html">👥 社区</a></li>
+                <li><a href="#store" class="cta-btn">购买套件</a></li>
+                
+                <!-- 登录按钮 (ID必须是 loginItem) -->
+                <li id="loginItem"><a href="#" class="login-btn" onclick="openLoginModal()">登录</a></li>
+                
+                <!-- 登录成功后的状态 (ID必须是 userProfile) -->
+                <li id="userProfile" class="user-profile">
+                    <div class="user-avatar" id="userEmailDisplay">U</div>
+                    <span style="font-weight:600; font-size:14px;">我的账号</span>
+                    
+                    <!-- 下拉菜单 -->
+                    <div class="user-dropdown">
+                        <a href="#" class="dropdown-item">个人中心</a>
+                        <a href="#" class="dropdown-item logout-btn" onclick="handleLogout()">退出登录</a>
+                    </div>
+                </li>
+            </ul>
+            <div class="hamburger">☰</div>
+        </nav>
+    </header>
+
+    <!-- 登录弹窗 (Modal) -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeLoginModal()">&times;</span>
+            <h2>欢迎回到 Stringlight</h2>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">电子邮箱</label>
+                    <input type="email" id="email" placeholder="输入您的邮箱" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" placeholder="输入密码" required>
+                </div>
+                <button type="submit" class="submit-btn">立即登录</button>
+            </form>
+            <div class="modal-footer">
+                还没有账号？ <a href="#">免费注册</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="wechatModal" class="modal">
+        <div class="modal-content" style="text-align: center; max-width: 350px;">
+            <span class="close-modal" onclick="closeWechatModal()">&times;</span>
+            <h3 style="color: var(--secondary-color); margin-bottom: 20px;">扫码关注公众号</h3>
+            <img src="images/wechat_qrcode.jpg" alt="微信公众号二维码" style="width: 200px; height: 200px; margin-bottom: 15px; border-radius: 8px;">
+            <p style="color: #666; font-size: 14px;">获取最新教程、活动资讯与技术支持</p>
+        </div>
+    </div>
+
+    <!-- Hero 区域 -->
+    <section class="hero">
+        <!-- 1. 背景视频 -->
+        <!-- autoplay:自动播放, muted:静音(浏览器强制要求), loop:循环, playsinline:手机端内联播放 -->
+        <video autoplay muted loop playsinline class="hero-video" poster="images/hero-bg.jpg">
+            <source src="videos/hero_video.mp4" type="video/mp4">
+            您的浏览器不支持 HTML5 视频。
+        </video>
+
+        <!-- 2. 遮罩层 (用于变暗视频，确保文字清晰) -->
+        <div class="hero-overlay"></div>
+
+        <!-- 3. 内容容器 (保持不变) -->
+        <div class="container hero-content">
+            <h1>创造你自己的<br>智能体</h1>
+            <p>Stringlight 是一个开源的AI互动机器人套件。<br>通过动手制作，学习 STEM、编程与设计思维。</p>
+            <div class="hero-buttons">
+                <a href="#store" class="btn btn-primary">开始构建</a>
+                <a href="#video" class="btn btn-outline">观看视频</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 1. 机械 (Mechanical) -->
+    <section id="mechanical" class="section bg-light">
+        <div class="container">
+            <div class="section-title">
+                <h2>🔧 机械构建</h2>
+                <p>简单易上手的硬件组装，无需焊接，即插即用。</p>
+            </div>
+            <div class="grid-container">
+                <div class="card">
+                    <span class="card-icon">🖨️</span>
+                    <h3>3D 打印部件</h3>
+                    <p>下载免费的 STL 文件，使用家里的 3D 打印机制作身体，或者直接购买我们的套件。</p>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🔋</span>
+                    <h3>电子模块</h3>
+                    <p>基于 ESP32S3 的核心主板，配合舵机和 LCD 屏幕，在 Stringlight 赋予机器人生命。</p>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🛠️</span>
+                    <h3>组装指南</h3>
+                    <p>详细的分步图文教程，只需一把螺丝刀，45分钟内即可完成组装。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. 编程 (Programming) -->
+    <section id="programming" class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>💻 编程控制</h2>
+                <p>从图形化编程到代码编写，适合所有年龄段。</p>
+            </div>
+            
+            <div class="feature-row">
+                <div class="feature-text">
+                    <h3>图形化编程 (Blockly)</h3>
+                    <p>专为初学者设计。只需拖拽积木块，就能控制舵机角度，实现机器人街舞。不需要任何编程基础。</p>
+                    <br>
+                    <a href="#" style="color:var(--accent-green); font-weight:bold;">下载 Stringlight Blockly ></a>
+                </div>
+                <!-- 注意：这里可以替换为真实图片 -->
+                <div class="feature-img">
+                    <!-- 示例：<img src="images/blockly.jpg" alt="Blockly"> -->
+                    <img src="images/ScreenShot_1.png" alt="Blockly 编程界面" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">
+                </div>
+            </div>
+
+            <div class="feature-row">
+                <div class="feature-text">
+                    <h3>Python & C++</h3>
+                    <p>准备好进阶了吗？Stringlight 完全兼容 ESP-IDF 和 Arduino IDE。编写复杂的算法，接入物联网 (IoT)，让动作随音乐舞动。</p>
+                </div>
+                <div class="feature-img">
+                    <img src="images/ScreenShot_2.png" alt="Blockly 编程界面" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. 设计 (Design) -->
+    <section id="design" class="section bg-light">
+        <div class="container">
+            <div class="section-title">
+                <h2>🎨 定制设计</h2>
+                <p>不仅仅是组装，更是创造。Stringlight 是你创意的画布。</p>
+            </div>
+            <div class="grid-container">
+                <div class="card">
+                    <span class="card-icon">📐</span>
+                    <h3>StringlightCAD 混搭</h3>
+                    <p>我们提供基础的 STL 模型。使用 StringlightCAD 轻松修改外壳，给你的 Stringlight 加上猫耳朵或酷炫的底座。</p>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🔌</span>
+                    <h3>配件系统</h3>
+                    <p>模块化设计允许你添加传感器、扬声器或更多灯带。设计你专属的扩展配件。</p>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🎨</span>
+                    <h3>个性化外观</h3>
+                    <p>使用贴纸、涂装或不同颜色的 3D 打印材料，打造世界上独一无二的 Stringlight。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. 社区 (Community) -->
+    <section id="community" class="section">
+        <div class="container">
+            <div class="community-banner">
+                <h2>👥 加入 Stringlight 创客社区</h2>
+                <p style="color: white; opacity: 0.9; margin: 20px 0;">全球已有众多创客制作了 Stringlight。分享你的作品，获取灵感，解决问题。</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-outline" style="color:white; border-color:white; background:transparent;" onclick="openWechatModal()">关注微信公众号</button>
+                    <a href="community.html" target="_blank" class="btn" style="background: white; color: var(--accent-green);">访问论坛</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="logo" style="justify-content: center; margin-bottom: 20px;">String<span>light</span></div>
+            <div style="display: flex; justify-content: center; gap: 20px; font-size: 24px;">
+                <a href="#">📱</a> <!-- 模拟社交图标 -->
+                <a href="#">📺</a>
+                <a href="#">📷</a>
+                <a href="#">🐦</a>
+            </div>
+            <p>&copy; 2025 Stringlight DIY. All Rights Reserved. Inspired by Otto DIY.</p>
+        </div>
+    </footer>
+
+    <script>
+        // 移动端菜单
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // --- 登录逻辑 ---
+        const modal = document.getElementById('loginModal');
+        const loginItem = document.getElementById('loginItem');
+        const userProfile = document.getElementById('userProfile');
+
+        // 打开弹窗
+        function openLoginModal() {
+            modal.style.display = 'flex';
+        }
+
+        // 关闭弹窗
+        function closeLoginModal() {
+            modal.style.display = 'none';
+        }
+
+        // 点击遮罩层关闭
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // 处理登录提交（模拟）
+        function handleLogin(event) {
+            event.preventDefault(); // 阻止表单刷新页面
+            
+            // 获取输入（实际项目中这里会发送到服务器验证）
+            const email = document.getElementById('email').value;
+            
+            // 模拟加载
+            const btn = document.querySelector('.submit-btn');
+            const originalText = btn.innerText;
+            btn.innerText = '登录中...';
+            
+            setTimeout(() => {
+                // 模拟登录成功
+                modal.style.display = 'none';
+                loginItem.style.display = 'none'; // 隐藏登录按钮
+                userProfile.style.display = 'flex'; // 显示用户信息
+                btn.innerText = originalText;
+                alert('欢迎回来，' + email);
+            }, 1000);
+        }
+
+        // --- 微信公众号弹窗逻辑 ---
+        const wechatModal = document.getElementById('wechatModal');
+
+        function openWechatModal() {
+            wechatModal.style.display = 'flex';
+        }
+
+        function closeWechatModal() {
+            wechatModal.style.display = 'none';
+        }
+
+        // 统一的遮罩层点击关闭逻辑
+        window.onclick = function(event) {
+            if (event.target == loginModal) {
+                loginModal.style.display = "none";
+            }
+            if (event.target == wechatModal) {
+                wechatModal.style.display = "none";
+            }
+        }
+        
+    </script>
+    <script src="js/auth.js"></script> 
+
+    <script src="js/particles.js"></script>
+</body>
+</html>

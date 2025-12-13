@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stringlight 社区 - 连接全球创客</title>
+    <link rel="icon" href="images/logo32x32.png" type="image/png">
+    <style>
+        /* --- 1. 修复页面跳动：强制显示滚动条 --- */
+        html {
+            overflow-y: scroll; /* 关键：防止不同页面因滚动条有无而导致的左右位移 */
+        }
+
+        /* --- 继承 index.html 的基础变量与样式 --- */
+        :root {
+            --primary-color: #ffb700;
+            --secondary-color: #2c2c63;
+            --accent-green: #33db00;
+            --text-color: #4b5056;
+            --light-bg: #f4f6f8;
+            --white: #ffffff;
+            --border-color: #e2e4e7;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; color: var(--text-color); line-height: 1.6; background-color: var(--light-bg); }
+        a { text-decoration: none; color: inherit; transition: 0.3s; }
+        ul { list-style: none; }
+
+        /* --- 导航栏样式 (保持与 Index 完全一致) --- */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            cursor: pointer; /* 让 Logo 看起来可点击 */
+        }
+        .logo span { color: var(--primary-color); }
+        
+        .nav-logo-img { 
+            height: 35px; 
+            width: auto; 
+            margin-right: 10px; 
+            display: block; 
+            object-fit: contain; 
+        }
+
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        .nav-links a { font-weight: 600; font-size: 16px; color: var(--secondary-color); display: flex; align-items: center; gap: 5px; }
+        .nav-links a:hover { color: var(--primary-color); }
+        .nav-links a.active { color: var(--primary-color); }
+
+        .cta-btn {
+            background-color: var(--accent-green);
+            color: white !important;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        .cta-btn:hover { background-color: #2ab800; transform: translateY(-2px); }
+
+        /* 登录按钮样式 */
+        .login-btn {
+            cursor: pointer;
+            border: 2px solid var(--secondary-color);
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+        .login-btn:hover {
+            background-color: var(--secondary-color);
+            color: white !important;
+        }
+
+        /* --- Community Hero Section --- */
+        .comm-hero {
+            margin-top: 70px; /* 避开导航栏 */
+            padding: 80px 20px 80px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #1a1a3d 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .comm-hero h1 { font-size: 3rem; margin-bottom: 20px; }
+        .comm-hero p { font-size: 1.2rem; margin-bottom: 30px; opacity: 0.9; max-width: 800px; margin-left: auto; margin-right: auto; }
+        
+        /* --- Forum Container Layout --- */
+        .forum-container {
+            max-width: 1200px;
+            margin: 60px auto 80px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+        }
+
+        /* Sidebar Styling */
+        .forum-sidebar { background: rgba(255,255,255,0.8); padding: 20px; border-radius: 10px; height: fit-content; }
+        .sidebar-title { font-size: 1.1rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
+        .category-list li { margin-bottom: 10px; }
+        .category-list a { display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 6px; color: var(--text-color); font-weight: 500; }
+        .category-list a:hover { background-color: #eee; color: var(--secondary-color); }
+        .category-list a.active { background-color: var(--secondary-color); color: white; }
+        .cat-count { background: #ddd; font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; color: #666; }
+
+        /* Main Content Styling */
+        .forum-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        /* Thread Card */
+        .thread-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            transition: 0.2s;
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        .thread-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-color: var(--primary-color); }
+        
+        .user-avatar-small { width: 45px; height: 45px; background: #ddd; border-radius: 50%; margin-right: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #666; flex-shrink: 0; }
+        .thread-info { flex: 1; }
+        .thread-title { font-size: 1.2rem; font-weight: 700; color: var(--secondary-color); display: block; margin-bottom: 5px; }
+        .thread-meta { font-size: 0.9rem; color: #999; }
+        .thread-tag { display: inline-block; font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; margin-right: 10px; font-weight: 600; }
+        
+        /* 标签颜色 */
+        .tag-help { background: #ffeebb; color: #d48806; }
+        .tag-showcase { background: #d9f7be; color: #389e0d; }
+        .tag-official { background: #e6f7ff; color: #096dd9; }
+        .tag-new { background: #ffccc7; color: #cf1322; }
+
+        .thread-stats { text-align: center; min-width: 80px; color: #888; font-size: 0.9rem; }
+        .stat-num { font-weight: bold; color: var(--secondary-color); display: block; font-size: 1.1rem; }
+
+        /* --- Global Movement Section --- */
+        .global-section {
+            text-align: center;
+            padding: 60px 20px;
+            background-color: white;
+            margin-bottom: 60px;
+        }
+        .global-section h2 { color: var(--secondary-color); font-size: 2rem; margin-bottom: 20px; }
+        
+        /* 弹窗通用样式 */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background-color: var(--white); padding: 40px; border-radius: 20px; width: 90%; max-width: 500px; position: relative; box-shadow: 0 15px 50px rgba(0,0,0,0.2); }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #aaa; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; outline:none; }
+        .form-group textarea { resize: vertical; height: 100px; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--primary-color); }
+        .submit-btn { width: 100%; padding: 12px; background-color: var(--secondary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        /* Footer */
+        footer {
+            background-image: url('images/website_background.png');
+            background-size: cover;
+            background-position: center;
+            color: #5c5555;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .forum-container { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+            .thread-stats { display: none; }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- 导航栏 -->
+    <header>
+        <nav>
+            <!-- Logo 结构改回 div，通过 onclick 跳转，确保结构与 index.html 完全一致以对齐 -->
+            <div class="logo" onclick="location.href='index.html'">
+                <img src="images/logo.png" alt="Stringlight Logo" class="nav-logo-img">
+                String<span>light</span>
+            </div>
+
+            <ul class="nav-links">
+                <li><a href="index.html#mechanical">🔧 机械</a></li>
+                <li><a href="index.html#programming">💻 编程</a></li>
+                <li><a href="index.html#design">🎨 设计</a></li>
+                <li><a href="community.html" class="active">👥 社区</a></li>
+                <li><a href="index.html#store" class="cta-btn">购买套件</a></li>
+                
+                <!-- 替换登录部分 -->
+                <li id="loginItem"><a href="#" class="login-btn" onclick="openLoginModal()">登录</a></li>
+                
+                <li id="userProfile" class="user-profile">
+                    <div class="user-avatar" id="userEmailDisplay">U</div>
+                    <div class="user-dropdown">
+                        <a href="#" class="dropdown-item logout-btn" onclick="handleLogout()">退出登录</a>
+                    </div>
+                </li>
+            </ul>
+
+        </nav>
+    </header>
+
+    <!-- Hero 区域 -->
+    <section class="comm-hero">
+        <h1>Stringlight 创客社区</h1>
+        <p>加入我们活跃的开源机器人社区。分享你的作品，解决构建难题，结识志同道合的朋友。</p>
+        <!-- 点击此按钮触发发帖弹窗 -->
+        <button class="cta-btn" onclick="openModal('postModal')" style="font-size:1.1rem;">立即发帖 +</button>
+    </section>
+
+    <!-- 论坛主体内容 -->
+    <div class="forum-container">
+        <!-- 左侧侧边栏 -->
+        <aside class="forum-sidebar">
+            <div class="sidebar-title">板块分类</div>
+            <ul class="category-list">
+                <li><a href="#" class="active">全部讨论 <span class="cat-count">420</span></a></li>
+                <li><a href="#">📢 官方公告 <span class="cat-count">12</span></a></li>
+                <li><a href="#">🆘 组装求助 <span class="cat-count">158</span></a></li>
+                <li><a href="#">💻 编程交流 <span class="cat-count">96</span></a></li>
+                <li><a href="#">🎨 作品展示 <span class="cat-count">204</span></a></li>
+                <li><a href="#">💡 创意脑暴 <span class="cat-count">45</span></a></li>
+            </ul>
+            <br>
+            <div class="sidebar-title">热门标签</div>
+            <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                <span class="thread-tag tag-official">#Arduino</span>
+                <span class="thread-tag tag-official">#ESP32</span>
+                <span class="thread-tag tag-official">#3D打印</span>
+                <span class="thread-tag tag-official">#Blockly</span>
+            </div>
+        </aside>
+
+        <!-- 右侧帖子列表 -->
+        <main class="forum-main" id="threadList">
+            <div class="forum-header">
+                <h2 style="color:var(--secondary-color);">最新讨论</h2>
+                <div style="font-size:0.9rem; color:#888;">
+                    排序：<span style="color:var(--primary-color); font-weight:bold; cursor:pointer;">最新回复</span> | <span style="cursor:pointer;">最新发布</span>
+                </div>
+            </div>
+
+            <!-- 帖子 1 -->
+            <div class="thread-card">
+                <div class="user-avatar-small" style="background:#ff9f43; color:white;">A</div>
+                <div class="thread-info">
+                    <a href="#" class="thread-title">求助：我的 Stringlight 舵机校准后还是走路歪斜</a>
+                    <div class="thread-meta">
+                        <span class="thread-tag tag-help">求助</span>
+                        <span>由 <b>AlexMaker</b> 发布于 2小时前</span>
+                    </div>
+                </div>
+                <div class="thread-stats">
+                    <span class="stat-num">14</span>
+                    回复
+                </div>
+            </div>
+
+            <!-- 帖子 2 -->
+            <div class="thread-card">
+                <div class="user-avatar-small" style="background:#2c2c63; color:white;">S</div>
+                <div class="thread-info">
+                    <a href="#" class="thread-title">【作品】我给 Stringlight 加上了钢铁侠的配色和语音包！</a>
+                    <div class="thread-meta">
+                        <span class="thread-tag tag-showcase">展示</span>
+                        <span>由 <b>SuperFan</b> 发布于 5小时前</span>
+                    </div>
+                </div>
+                <div class="thread-stats">
+                    <span class="stat-num">328</span>
+                    点赞
+                </div>
+            </div>
+
+            <!-- 帖子 3 -->
+            <div class="thread-card">
+                <div class="user-avatar-small" style="background:#33db00; color:white;">O</div>
+                <div class="thread-info">
+                    <a href="#" class="thread-title">官方教程更新：如何使用 Python 控制 LED 矩阵表情</a>
+                    <div class="thread-meta">
+                        <span class="thread-tag tag-official">置顶</span>
+                        <span>由 <b>Stringlight官方</b> 发布于 昨天</span>
+                    </div>
+                </div>
+                <div class="thread-stats">
+                    <span class="stat-num">56</span>
+                    回复
+                </div>
+            </div>
+
+            <!-- 帖子 4 -->
+            <div class="thread-card">
+                <div class="user-avatar-small">U</div>
+                <div class="thread-info">
+                    <a href="#" class="thread-title">有没有人试过用树莓派 Pico 替换主控板？</a>
+                    <div class="thread-meta">
+                        <span class="thread-tag tag-help">讨论</span>
+                        <span>由 <b>User889</b> 发布于 2天前</span>
+                    </div>
+                </div>
+                <div class="thread-stats">
+                    <span class="stat-num">8</span>
+                    回复
+                </div>
+            </div>
+
+            <div style="text-align:center; margin-top:30px;">
+                <button style="padding:10px 30px; background:white; border:1px solid #ccc; border-radius:20px; cursor:pointer;">加载更多...</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- 全球运动区域 -->
+    <section class="global-section">
+        <h2>🌎 属于全球创客的运动</h2>
+        <p style="max-width:600px; margin:0 auto 30px; color:#666;">
+            无论你在学校、创客空间还是家里的车库，Stringlight 都能带你进入机器人世界。
+            我们相信开源的力量，分享让知识更有价值。
+        </p>
+        <div style="height:300px; background:#f0f2f5; border-radius:20px; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:1.5rem; max-width:800px; margin:0 auto;">
+            [ 世界地图 - 全球点亮 Stringlight ]
+        </div>
+    </section>
+
+    <!-- 1. 登录弹窗 -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
+            <h2 style="text-align:center; margin-bottom:20px; color:var(--secondary-color);">登录社区账号</h2>
+            <form onsubmit="event.preventDefault(); closeModal('loginModal'); alert('登录成功！');">
+                <div class="form-group">
+                    <label>电子邮箱</label>
+                    <input type="email" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" required>
+                </div>
+                <button type="submit" class="submit-btn">登录 / 注册</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. 发帖弹窗 (新增) -->
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('postModal')">&times;</span>
+            <h2 style="text-align:center; margin-bottom:20px; color:var(--secondary-color);">发布新讨论</h2>
+            <form id="postForm" onsubmit="handleNewPost(event)">
+                <div class="form-group">
+                    <label>标题</label>
+                    <input type="text" id="postTitle" placeholder="请简要描述你的问题或分享..." required>
+                </div>
+                <div class="form-group">
+                    <label>分类标签</label>
+                    <select id="postTag">
+                        <option value="help">🆘 求助</option>
+                        <option value="showcase">🎨 作品展示</option>
+                        <option value="discuss">💡 讨论</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>内容</label>
+                    <textarea id="postContent" placeholder="在这里详细描述..." required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">立即发布</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container" style="max-width:1200px; margin:0 auto;">
+            <div class="logo" style="justify-content: center; margin-bottom: 20px;">String<span>light</span></div>
+            <div style="display: flex; justify-content: center; gap: 20px; font-size: 24px;">
+                <a href="#">📱</a>
+                <a href="#">📺</a>
+                <a href="#">📷</a>
+                <a href="#">🐦</a>
+            </div>
+            <p>&copy; 2025 Stringlight DIY. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // 通用：打开弹窗
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        // 通用：关闭弹窗
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // 通用：点击遮罩层关闭
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+            }
+        }
+
+        // --- 核心逻辑：处理发帖 ---
+        function handleNewPost(event) {
+            event.preventDefault(); // 阻止表单刷新页面
+
+            // 1. 获取用户输入
+            const title = document.getElementById('postTitle').value;
+            const tagValue = document.getElementById('postTag').value;
+            
+            // 2. 根据选择的标签设置显示样式和文字
+            let tagClass = 'tag-new';
+            let tagName = '新帖';
+            if (tagValue === 'help') { tagClass = 'tag-help'; tagName = '求助'; }
+            if (tagValue === 'showcase') { tagClass = 'tag-showcase'; tagName = '展示'; }
+            if (tagValue === 'discuss') { tagClass = 'tag-official'; tagName = '讨论'; }
+
+            // 3. 创建帖子的 HTML 结构
+            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+            
+            const newPostHTML = `
+                <div class="thread-card" style="border-left: 5px solid var(--accent-green);">
+                    <div class="user-avatar-small" style="background:${randomColor}; color:white;">Me</div>
+                    <div class="thread-info">
+                        <a href="#" class="thread-title">${title}</a>
+                        <div class="thread-meta">
+                            <span class="thread-tag ${tagClass}">${tagName}</span>
+                            <span>由 <b>我</b> 发布于 刚刚</span>
+                        </div>
+                    </div>
+                    <div class="thread-stats">
+                        <span class="stat-num">0</span>
+                        回复
+                    </div>
+                </div>
+            `;
+
+            // 4. 将新帖子插入到列表的最前面
+            const forumMain = document.getElementById('threadList');
+            const firstPost = forumMain.querySelector('.thread-card');
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = newPostHTML;
+            const newPostElement = tempDiv.firstElementChild;
+
+            forumMain.insertBefore(newPostElement, firstPost);
+
+            // 5. 重置表单并关闭弹窗
+            document.getElementById('postForm').reset();
+            closeModal('postModal');
+
+            // 6. 给个反馈
+            alert('发布成功！快去看看你的新帖子吧。');
+        }
+    </script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
