@@ -265,18 +265,125 @@
         /* --- Hero 区域视频背景样式 --- */
 
         /* 1. Hero 容器基础设置 */
-        .hero {
-            position: relative; /* 关键：作为子元素定位的参考点 */
+        /* --- Hero 区域 (轮播图版) --- */
+        .hero-slider {
+            position: relative;
             width: 100%;
-            height: 100vh; /* 建议：设置为全屏高度，或者保持原来的 padding */
+            height: 100vh; /* 全屏高度 */
             min-height: 600px;
+            overflow: hidden; /* 隐藏溢出的内容 */
+            background-color: #000; /* 默认黑色背景 */
+        }
+
+        /* 滑动轨道：宽度由JS根据幻灯片数量动态设定，或者设大一点 */
+        .hero-wrapper {
             display: flex;
-            align-items: center; /* 垂直居中 */
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out; /* 平滑滑动效果 */
+        }
+
+        /* 单个幻灯片 */
+        .hero-slide {
+            min-width: 100%; /* 让每个幻灯片都占满屏幕宽度 */
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            overflow: hidden; /* 防止视频溢出 */
+            overflow: hidden;
+        }
+
+        /* 媒体内容 (视频或图片) */
+        .hero-media {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 铺满且不变形 */
+            z-index: 1;
+        }
+
+        /* 遮罩层 */
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(44, 44, 99, 0.6) 0%, rgba(26, 26, 61, 0.8) 100%);
+            z-index: 2;
+        }
+
+        /* 文字内容层 */
+        .hero-content {
+            position: relative;
+            z-index: 3;
             color: var(--white);
             text-align: center;
-            /* 删除原来的 background-image 和 background-color，交给视频处理 */
+            padding: 0 20px;
+            opacity: 0; /* 默认透明，为了进场动画 */
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+        
+        /* 只有当前激活的 Slide 才显示文字 */
+        .hero-slide.active .hero-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            /* line-height: 1.2;  */
+        }
+
+        .hero-content p { 
+            font-size: 1.2rem; 
+            margin-bottom: 40px; 
+            opacity: 0.9; 
+            max-width: 800px; 
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+
+        .hero-buttons { display: flex; justify-content: center; gap: 20px; }
+        .btn { padding: 12px 30px; border-radius: 50px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .btn-primary { background-color: var(--primary-color); color: var(--secondary-color); }
+        .btn-outline { border: 2px solid var(--white); color: var(--white); }
+        .btn-outline:hover { background-color: var(--white); color: var(--secondary-color); }
+
+        /* --- 左右切换按钮 --- */
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            font-size: 2rem;
+            padding: 15px;
+            cursor: pointer;
+            z-index: 10;
+            transition: 0.3s;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .slider-btn:hover { background-color: rgba(255, 255, 255, 0.3); }
+        .slider-btn.prev { left: 20px; }
+        .slider-btn.next { right: 20px; }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .hero-content h1 { font-size: 2.5rem; }
         }
 
         /* 2. 视频样式 */
@@ -290,49 +397,8 @@
             z-index: 1; /* 最底层 */
         }
 
-        /* 3. 遮罩层样式 (让视频变暗，突出文字) */
-        .hero-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(44, 44, 99, 0.6) 0%, rgba(26, 26, 61, 0.8) 100%);
-            z-index: 2; 
-        } 
 
-        
 
-        /* 4. 内容层样式 (提升层级) */
-        .hero-content {
-            position: relative;
-            z-index: 3; /* 在遮罩之上，确保可点击 */
-        }
-
-        /* 保持原有的标题和按钮样式不变 */
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3); /* 加一点阴影更清晰 */
-        }
-
-        /* 移动端适配 */
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            /* 如果手机端不想加载视频以节省流量，可以取消注释下面这行 */
-            /* .hero-video { display: none; } .hero { background-image: url('images/hero-bg.jpg'); background-size: cover; } */
-        }
-
-        /* .hero {
-            background-color: var(--secondary-color);
-            color: var(--white);
-            padding: 160px 20px 100px;
-            text-align: center;
-
-            background-image: linear-gradient(135deg, rgba(44, 44, 99, 0.9) 0%, rgba(26, 26, 61, 0.95) 100%);
-            background-size: cover;
-            background-position: center;
-        } */
 
         .hero h1 { font-size: 3.5rem; margin-bottom: 20px; }
         .hero p { font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9; }
@@ -396,15 +462,33 @@
         /* --- 社区 Banner --- */
         .community-banner { background-color: var(--accent-green); color: white; border-radius: 20px; padding: 60px; text-align: center; }
 
-        /* --- Footer --- */
-        /* footer {  */
-            /* background-color: var(--secondary-color); color: #ccc; padding: 50px 20px; text-align: center;  */
-                /* background-color: #a9f891;  */
-                /* color: #181717; */
-                /* padding: 60px 20px; */
-                /* text-align: center; */
-        /* } */
-        /* footer p { margin-top: 20px; font-size: 0.9rem; } */
+
+        /* --- Footer 社交图标样式 --- */
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 25px; /* 图标之间的间距 */
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .social-icon-img {
+            width: 32px;  /* 图标宽度 */
+            height: 32px; /* 图标高度 */
+            object-fit: contain; /* 保持图片比例 */
+            transition: transform 0.3s ease, opacity 0.3s;
+            opacity: 0.7; /* 默认稍微透明一点，显得更有质感 */
+            
+            /* 如果你的图标是黑色的，但背景也是黑色的，可以用滤镜反转颜色 */
+            /* filter: invert(1); */ 
+        }
+
+        /* 鼠标悬停时的效果 */
+        .social-icon-img:hover {
+            transform: scale(1.2) translateY(-3px); /* 放大并轻微上浮 */
+            opacity: 1; /* 变为完全不透明 */
+        }
+
 
         /* --- 页脚样式 (已更新背景图) --- */
         footer {
@@ -418,6 +502,8 @@
             padding: 60px 20px;
             text-align: center;
         }
+
+
 
         /* --- 媒体查询 (Mobile) --- */
         @media (max-width: 768px) {
@@ -509,26 +595,59 @@
     </div>
 
     <!-- Hero 区域 -->
-    <section class="hero">
-        <!-- 1. 背景视频 -->
-        <!-- autoplay:自动播放, muted:静音(浏览器强制要求), loop:循环, playsinline:手机端内联播放 -->
-        <video autoplay muted loop playsinline class="hero-video" poster="images/hero-bg.jpg">
-            <source src="videos/hero_video.mp4" type="video/mp4">
-            您的浏览器不支持 HTML5 视频。
-        </video>
-
-        <!-- 2. 遮罩层 (用于变暗视频，确保文字清晰) -->
-        <div class="hero-overlay"></div>
-
-        <!-- 3. 内容容器 (保持不变) -->
-        <div class="container hero-content">
-            <h1>创造你自己的<br>智能体</h1>
-            <p>Stringlight 是一个开源的AI互动机器人套件。<br>通过动手制作，学习 STEM、编程与设计思维。</p>
-            <div class="hero-buttons">
-                <a href="#store" class="btn btn-primary">开始构建</a>
-                <a href="#video" class="btn btn-outline">观看视频</a>
+    <section class="hero-slider" id="heroSlider">
+        <div class="hero-wrapper" id="heroWrapper">
+            
+            <!-- Slide 1: 视频 -->
+            <div class="hero-slide active">
+                <video autoplay muted loop playsinline class="hero-media">
+                    <source src="videos/hero_video.mp4" type="video/mp4">
+                    您的浏览器不支持 HTML5 视频。
+                </video>
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <h1>创造你自己的<br>智能体</h1>
+                    <p>Stringlight 是一个开源的AI互动机器人套件。<br>通过动手制作，学习 STEM、编程与设计思维。</p>
+                    <div class="hero-buttons">
+                        <a href="#store" class="btn btn-primary">开始构建</a>
+                        <a href="#video" class="btn btn-outline">观看视频</a>
+                    </div>
+                </div>
             </div>
+
+            <!-- Slide 2: 图片 (展示社区或设计) -->
+            <div class="hero-slide">
+                <!-- 这里假设你有这张图，如果没有可以使用 placeholder 图片 -->
+                <img src="images/hero_mask.png" alt="Design" class="hero-media">
+                <div class="hero-overlay" style="background: linear-gradient(135deg, rgba(113, 155, 101, 0.4) 0%, rgba(26, 26, 61, 0.8) 100%);"></div>
+                <div class="hero-content">
+                    <h1>释放无限<br>创意设计</h1>
+                    <p>使用 StringlightCAD 修改外壳，或通过 3D 打印定制专属外观。<br>你的机器人，由你定义。</p>
+                    <div class="hero-buttons">
+                        <a href="#design" class="btn btn-primary">查看设计模组</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3: 图片/编程 (展示代码能力) -->
+            <div class="hero-slide">
+                <!-- 示例：使用一张编程相关的截图作为背景 -->
+                <img src="images/ScreenShot_1.png" alt="Programming" class="hero-media">
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <h1>图形化编程<br>轻松入门</h1>
+                    <p>Blockly 积木式编程让逻辑清晰可见。<br>同时支持 Python 与 C++ 进阶开发。</p>
+                    <div class="hero-buttons">
+                        <a href="#programming" class="btn btn-primary">体验编程</a>
+                    </div>
+                </div>
+            </div>
+
         </div>
+
+        <!-- 左右切换按钮 -->
+        <button class="slider-btn prev" onclick="moveSlide(-1)">&#10094;</button>
+        <button class="slider-btn next" onclick="moveSlide(1)">&#10095;</button>
     </section>
 
     <!-- 1. 机械 (Mechanical) -->
@@ -637,15 +756,35 @@
     <footer>
         <div class="container">
             <div class="logo" style="justify-content: center; margin-bottom: 20px;">String<span>light</span></div>
-            <div style="display: flex; justify-content: center; gap: 20px; font-size: 24px;">
-                <a href="#">📱</a> <!-- 模拟社交图标 -->
-                <a href="#">📺</a>
-                <a href="#">📷</a>
-                <a href="#">🐦</a>
+            
+            <!-- 社交图标区域 -->
+            <div class="social-icons">
+                <!-- 1. 微信 (示例文件名: icon_wechat.png) -->
+                <a href="#" onclick="openWechatModal(); return false;">
+                    <img src="images/icon_wechat.png" alt="WeChat" class="social-icon-img">
+                </a>
+                
+                <!-- 4. 其它(示例文件名: icon_twitter.png) -->
+                <a href="#" target="_blank">
+                    <img src="images/icon_douyin.png" alt="Douyin" class="social-icon-img">
+                </a>
+
+                <!-- 2. B站/视频 (示例文件名: icon_bilibili.png) -->
+                <a href="#" target="_blank">
+                    <img src="images/icon_bilibili.png" alt="Bilibili" class="social-icon-img">
+                </a>
+                
+                <!-- 3. Github/代码 (示例文件名: icon_github.png) -->
+                <a href="#" target="_blank">
+                    <img src="images/icon_github.png" alt="GitHub" class="social-icon-img">
+                </a>
+                
             </div>
+
             <p>&copy; 2025 Stringlight DIY. All Rights Reserved. Inspired by Otto DIY.</p>
         </div>
     </footer>
+
 
     <script>
         // 移动端菜单
@@ -721,6 +860,120 @@
             }
         }
         
+
+        // --- Hero 轮播图逻辑 (无缝无限轮播版) ---
+        const wrapper = document.getElementById('heroWrapper');
+        // 获取原始幻灯片列表
+        const originalSlides = document.querySelectorAll('.hero-slide');
+        const totalOriginal = originalSlides.length;
+        let slideInterval;
+        let isTransitioning = false; // 防止快速点击导致错位
+
+        // 当前索引：从 1 开始，因为 0 位置将放置 "最后一张的克隆"
+        let currentIndex = 1; 
+
+        // 初始化
+        function initSlider() {
+            // 1. 克隆首尾幻灯片
+            const firstClone = originalSlides[0].cloneNode(true);
+            const lastClone = originalSlides[totalOriginal - 1].cloneNode(true);
+
+            // 给克隆元素加上标记（可选，用于调试）
+            firstClone.id = 'first-clone';
+            lastClone.id = 'last-clone';
+
+            // 2. 将克隆元素插入 DOM
+            wrapper.appendChild(firstClone); // 把第一张的克隆放到最后
+            wrapper.insertBefore(lastClone, originalSlides[0]); // 把最后一张的克隆放到最前
+
+            // 3. 现在的幻灯片总列表（包含克隆项）
+            const allSlides = document.querySelectorAll('.hero-slide');
+
+            // 4. 初始化位置：瞬间定位到索引 1 (真正的第一张)
+            wrapper.style.transform = `translateX(-100%)`;
+            
+            // 5. 激活第一张的内容
+            updateActiveState(allSlides);
+
+            // 6. 监听动画结束事件 (处理瞬间回弹)
+            wrapper.addEventListener('transitionend', () => {
+                isTransitioning = false;
+                
+                // 情况 A: 滑到了最后一张的克隆 (index = total + 1) -> 瞬间跳回 真实的第一张 (index = 1)
+                if (currentIndex >= totalOriginal + 1) {
+                    wrapper.style.transition = 'none'; // 关闭动画
+                    currentIndex = 1;
+                    wrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+                    // 强制浏览器重绘 (虽非必须，但保险)
+                    wrapper.offsetHeight; 
+                    updateActiveState(allSlides);
+                }
+                
+                // 情况 B: 滑到了第一张的克隆 (index = 0) -> 瞬间跳回 真实的最后一张
+                if (currentIndex <= 0) {
+                    wrapper.style.transition = 'none'; // 关闭动画
+                    currentIndex = totalOriginal;
+                    wrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+                    wrapper.offsetHeight;
+                    updateActiveState(allSlides);
+                }
+            });
+
+            // 启动自动播放
+            startSlideTimer();
+        }
+
+        // 切换幻灯片
+        function moveSlide(direction) {
+            if (isTransitioning) return; // 如果正在动画中，忽略点击
+            
+            const allSlides = document.querySelectorAll('.hero-slide');
+            isTransitioning = true;
+            
+            // 开启过渡动画
+            wrapper.style.transition = 'transform 0.5s ease-in-out';
+            
+            currentIndex += direction;
+            wrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+            // 更新文字和视频状态
+            updateActiveState(allSlides);
+            resetSlideTimer();
+        }
+
+        // 更新 Active 状态 (控制文字显示和视频播放)
+        function updateActiveState(allSlides) {
+            allSlides.forEach((slide, index) => {
+                // 如果是当前索引，或者是“视觉上”应该是当前的索引（处理克隆时的瞬间状态）
+                if (index === currentIndex) {
+                    slide.classList.add('active');
+                    const video = slide.querySelector('video');
+                    if (video) video.play().catch(e => {}); // 捕获自动播放可能的错误
+                } else {
+                    slide.classList.remove('active');
+                    const video = slide.querySelector('video');
+                    if (video) {
+                        video.pause();
+                        video.currentTime = 0;
+                    }
+                }
+            });
+        }
+
+        function startSlideTimer() {
+            slideInterval = setInterval(() => {
+                moveSlide(1);
+            }, 5000);
+        }
+
+        function resetSlideTimer() {
+            clearInterval(slideInterval);
+            startSlideTimer();
+        }
+
+        window.addEventListener('DOMContentLoaded', initSlider);
+
+
     </script>
     <script src="js/auth.js"></script> 
 
