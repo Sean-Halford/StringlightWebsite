@@ -17,11 +17,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // 路由
 const authRoutes = require('./routes/auth');
 const fileRoutes = require('./routes/files');
-const smsRoutes = require('./routes/sms').router;
 
 app.use('/api/auth', authRoutes);
 app.use('/api/files', fileRoutes);
-app.use('/api/sms', smsRoutes);
 
 // 健康检查端点
 app.get('/api/health', (req, res) => {

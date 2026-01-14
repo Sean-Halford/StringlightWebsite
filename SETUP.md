@@ -2,14 +2,43 @@
 
 ## 快速开始
 
+### ⚠️ 重要提示
+
+**必须在 `server` 目录下运行 `npm start`**，不要在项目根目录或其他目录下运行。
+
+如果看到错误：
+```
+npm error path /usr/share/nginx/package.json
+npm error enoent Could not read package.json
+```
+
+说明您在错误的目录下运行了命令。请先切换到 `server` 目录。
+
 ### 1. 安装后端依赖
 
 进入 `server` 目录并安装依赖：
 
 ```bash
+# 首先确认当前目录
+pwd  # 应该显示项目根目录路径
+
+# 进入 server 目录
 cd server
+
+# 确认在正确目录（应该能看到 package.json）
+ls   # 应该看到 package.json, server.js 等文件
+
+# ⚠️ 重要：必须先安装依赖！
 npm install
+
+# 如果安装很慢，可以使用国内镜像：
+# npm install --registry=https://registry.npmmirror.com
+
+# 验证安装（应该能看到 node_modules 目录）
+ls node_modules
 ```
+
+**注意**：如果直接运行 `npm start` 报错 `Cannot find module 'express'`，说明依赖没有安装，必须先运行 `npm install`。
 
 ### 2. 配置环境变量
 

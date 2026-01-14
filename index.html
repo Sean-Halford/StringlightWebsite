@@ -257,27 +257,6 @@
         }
         .modal-footer a { color: var(--primary-color); font-weight: bold; }
 
-        /* 验证码按钮样式 */
-        .code-btn {
-            padding: 12px 20px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: 0.3s;
-        }
-        .code-btn:hover:not(:disabled) {
-            background-color: #e6a500;
-        }
-        .code-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
         /* --- 移动端汉堡菜单 --- */
         .hamburger { display: none; font-size: 24px; cursor: pointer; }
 
@@ -614,25 +593,8 @@
             <h2>注册 Stringlight 账号</h2>
             <form id="registerForm" onsubmit="handleRegister(event)">
                 <div class="form-group">
-                    <label for="registerPhone">手机号码</label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <span style="color: #666; font-size: 14px; white-space: nowrap;">+86</span>
-                        <input type="text" id="registerPhone" placeholder="请输入11位手机号" 
-                               maxlength="11" pattern="[0-9]{11}" required 
-                               style="flex: 1;">
-                    </div>
-                    <small style="color: #666; font-size: 12px;">请输入11位手机号码</small>
-                </div>
-                <div class="form-group">
-                    <label for="registerCode">验证码</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="registerCode" placeholder="请输入6位验证码" 
-                               maxlength="6" pattern="[0-9]{6}" required 
-                               style="flex: 1;">
-                        <button type="button" id="sendCodeBtn" class="code-btn" onclick="sendVerificationCode()">
-                            发送验证码
-                        </button>
-                    </div>
+                    <label for="registerEmail">电子邮箱</label>
+                    <input type="email" id="registerEmail" placeholder="输入您的邮箱" required>
                 </div>
                 <div class="form-group">
                     <label for="registerPassword">设置密码</label>

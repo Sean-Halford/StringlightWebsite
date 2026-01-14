@@ -24,7 +24,7 @@ async function checkLoginStatus() {
                 // 已登录状态
                 loginItem.style.display = 'none';
                 userProfile.style.display = 'flex';
-                const identifier = response.user.email || response.user.phone || '用户';
+                const identifier = response.user.email || '用户';
                 if (userEmailDisplay) {
                     // 显示用户名的前两个字符
                     userEmailDisplay.innerText = identifier.substring(0, 2).toUpperCase();
@@ -79,7 +79,7 @@ async function handleLogin(event) {
         if (response.success) {
             // 保存token和用户信息
             localStorage.setItem('stringlight_token', response.token);
-            const identifier = response.user.email || response.user.phone || '用户';
+            const identifier = response.user.email || '用户';
             localStorage.setItem('stringlight_user', identifier);
             
             alert('登录成功！欢迎回来，' + identifier);
@@ -154,62 +154,6 @@ function closeRegisterModal() {
         if (form) {
             form.reset();
         }
-        // 重置验证码按钮
-        const sendCodeBtn = document.getElementById('sendCodeBtn');
-        if (sendCodeBtn) {
-            sendCodeBtn.disabled = false;
-            sendCodeBtn.innerText = '发送验证码';
-        }
-    }
-}
-
-// 发送验证码
-let countdownTimer = null;
-async function sendVerificationCode() {
-    const phoneInput = document.getElementById('registerPhone');
-    const sendCodeBtn = document.getElementById('sendCodeBtn');
-    
-    if (!phoneInput || !sendCodeBtn) return;
-    
-    const phone = phoneInput.value.trim();
-    
-    // 验证手机号格式
-    const phoneRegex = /^1[3-9]\d{9}$/;
-    if (!phone || !phoneRegex.test(phone)) {
-        alert('请输入正确的11位手机号码');
-        phoneInput.focus();
-        return;
-    }
-    
-    // 禁用按钮
-    sendCodeBtn.disabled = true;
-    sendCodeBtn.innerText = '发送中...';
-    
-    try {
-        const response = await smsAPI.sendCode(phone);
-        
-        if (response.success) {
-            alert('验证码已发送！' + (response.code ? `\n验证码：${response.code}（开发环境）` : ''));
-            
-            // 开始倒计时
-            let countdown = 60;
-            sendCodeBtn.innerText = `${countdown}秒后重发`;
-            
-            countdownTimer = setInterval(() => {
-                countdown--;
-                if (countdown > 0) {
-                    sendCodeBtn.innerText = `${countdown}秒后重发`;
-                } else {
-                    clearInterval(countdownTimer);
-                    sendCodeBtn.disabled = false;
-                    sendCodeBtn.innerText = '发送验证码';
-                }
-            }, 1000);
-        }
-    } catch (error) {
-        alert(error.message || '发送验证码失败，请稍后重试');
-        sendCodeBtn.disabled = false;
-        sendCodeBtn.innerText = '发送验证码';
     }
 }
 
@@ -217,37 +161,28 @@ async function sendVerificationCode() {
 async function handleRegister(event) {
     event.preventDefault();
     
-    const phoneInput = document.getElementById('registerPhone');
-    const codeInput = document.getElementById('registerCode');
+    const emailInput = document.getElementById('registerEmail');
     const passwordInput = document.getElementById('registerPassword');
     const passwordConfirmInput = document.getElementById('registerPasswordConfirm');
     const submitBtn = document.querySelector('#registerForm .submit-btn');
     
-    if (!phoneInput || !codeInput || !passwordInput || !passwordConfirmInput) return;
+    if (!emailInput || !passwordInput || !passwordConfirmInput) return;
     
-    const phone = phoneInput.value.trim();
-    const code = codeInput.value.trim();
+    const email = emailInput.value.trim();
     const password = passwordInput.value;
     const passwordConfirm = passwordConfirmInput.value;
     
     // 验证输入
-    if (!phone || !code || !password || !passwordConfirm) {
+    if (!email || !password || !passwordConfirm) {
         alert('请填写完整信息');
         return;
     }
     
-    // 验证手机号格式
-    const phoneRegex = /^1[3-9]\d{9}$/;
-    if (!phoneRegex.test(phone)) {
-        alert('请输入正确的11位手机号码');
-        phoneInput.focus();
-        return;
-    }
-    
-    // 验证验证码格式
-    if (!/^\d{6}$/.test(code)) {
-        alert('请输入6位数字验证码');
-        codeInput.focus();
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('请输入正确的邮箱地址');
+        emailInput.focus();
         return;
     }
     
@@ -272,12 +207,12 @@ async function handleRegister(event) {
     }
     
     try {
-        const response = await authAPI.register(phone, code, password, passwordConfirm);
+        const response = await authAPI.register(email, password);
         
         if (response.success) {
             // 保存token和用户信息
             localStorage.setItem('stringlight_token', response.token);
-            localStorage.setItem('stringlight_user', phone);
+            localStorage.setItem('stringlight_user', response.user.email || email);
             
             alert('注册成功！欢迎加入 Stringlight');
             
