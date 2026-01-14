@@ -38,25 +38,36 @@ async function apiRequest(endpoint, options = {}) {
 
 // 认证API
 const authAPI = {
-    // 用户注册
-    register: async (email, password, username) => {
+    // 用户注册（手机号方式）
+    register: async (phone, code, password, passwordConfirm, username) => {
         return apiRequest('/auth/register', {
             method: 'POST',
-            body: JSON.stringify({ email, password, username })
+            body: JSON.stringify({ phone, code, password, passwordConfirm, username })
         });
     },
     
-    // 用户登录
-    login: async (email, password) => {
+    // 用户登录（支持手机号和邮箱）
+    login: async (email, password, phone) => {
         return apiRequest('/auth/login', {
             method: 'POST',
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password, phone })
         });
     },
     
     // 获取当前用户信息
     getCurrentUser: async () => {
         return apiRequest('/auth/me');
+    }
+};
+
+// 短信验证码API
+const smsAPI = {
+    // 发送验证码
+    sendCode: async (phone) => {
+        return apiRequest('/sms/send-code', {
+            method: 'POST',
+            body: JSON.stringify({ phone })
+        });
     }
 };
 

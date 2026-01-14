@@ -23,19 +23,26 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // 初始化数据库表
 function initializeDatabase() {
-    // 创建用户表
+    // 创建用户表（支持手机号和邮箱两种注册方式）
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE NOT NULL,
+        email TEXT,
+        phone TEXT,
         password TEXT NOT NULL,
         username TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(email),
+        UNIQUE(phone)
     )`, (err) => {
         if (err) {
             console.error('创建用户表错误:', err.message);
         } else {
             console.log('用户表已就绪');
+            // 尝试添加phone字段（如果表已存在但没有phone字段）
+            db.run(`ALTER TABLE users ADD COLUMN phone TEXT`, (err) => {
+                // 忽略错误（字段可能已存在或表结构已更新）
+            });
         }
     });
 

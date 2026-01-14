@@ -257,6 +257,27 @@
         }
         .modal-footer a { color: var(--primary-color); font-weight: bold; }
 
+        /* 验证码按钮样式 */
+        .code-btn {
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.3s;
+        }
+        .code-btn:hover:not(:disabled) {
+            background-color: #e6a500;
+        }
+        .code-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
         /* --- 移动端汉堡菜单 --- */
         .hamburger { display: none; font-size: 24px; cursor: pointer; }
 
@@ -581,7 +602,50 @@
                 <button type="submit" class="submit-btn">立即登录</button>
             </form>
             <div class="modal-footer">
-                还没有账号？ <a href="#">免费注册</a>
+                还没有账号？ <a href="#" onclick="event.preventDefault(); closeLoginModal(); openRegisterModal();">免费注册</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册弹窗 (Modal) -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeRegisterModal()">&times;</span>
+            <h2>注册 Stringlight 账号</h2>
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="registerPhone">手机号码</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span style="color: #666; font-size: 14px; white-space: nowrap;">+86</span>
+                        <input type="text" id="registerPhone" placeholder="请输入11位手机号" 
+                               maxlength="11" pattern="[0-9]{11}" required 
+                               style="flex: 1;">
+                    </div>
+                    <small style="color: #666; font-size: 12px;">请输入11位手机号码</small>
+                </div>
+                <div class="form-group">
+                    <label for="registerCode">验证码</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="registerCode" placeholder="请输入6位验证码" 
+                               maxlength="6" pattern="[0-9]{6}" required 
+                               style="flex: 1;">
+                        <button type="button" id="sendCodeBtn" class="code-btn" onclick="sendVerificationCode()">
+                            发送验证码
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">设置密码</label>
+                    <input type="password" id="registerPassword" placeholder="至少6位字符" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPasswordConfirm">确认密码</label>
+                    <input type="password" id="registerPasswordConfirm" placeholder="再次输入密码" minlength="6" required>
+                </div>
+                <button type="submit" class="submit-btn">立即注册</button>
+            </form>
+            <div class="modal-footer">
+                已有账号？ <a href="#" onclick="event.preventDefault(); closeRegisterModal(); openLoginModal();">立即登录</a>
             </div>
         </div>
     </div>
@@ -811,7 +875,16 @@
 
         // 统一的遮罩层点击关闭逻辑（登录弹窗的关闭逻辑在auth.js中处理）
         window.addEventListener('click', function(event) {
+            const loginModal = document.getElementById('loginModal');
+            const registerModal = document.getElementById('registerModal');
             const wechatModal = document.getElementById('wechatModal');
+            
+            if (event.target == loginModal) {
+                closeLoginModal();
+            }
+            if (event.target == registerModal) {
+                closeRegisterModal();
+            }
             if (event.target == wechatModal) {
                 wechatModal.style.display = "none";
             }

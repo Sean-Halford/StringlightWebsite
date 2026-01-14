@@ -24,13 +24,13 @@ async function checkLoginStatus() {
                 // 已登录状态
                 loginItem.style.display = 'none';
                 userProfile.style.display = 'flex';
-                const email = response.user.email;
+                const identifier = response.user.email || response.user.phone || '用户';
                 if (userEmailDisplay) {
                     // 显示用户名的前两个字符
-                    userEmailDisplay.innerText = email.substring(0, 2).toUpperCase();
+                    userEmailDisplay.innerText = identifier.substring(0, 2).toUpperCase();
                 }
                 // 保存用户信息
-                localStorage.setItem('stringlight_user', email);
+                localStorage.setItem('stringlight_user', identifier);
             } else {
                 // token无效，清除
                 localStorage.removeItem('stringlight_token');
@@ -79,9 +79,10 @@ async function handleLogin(event) {
         if (response.success) {
             // 保存token和用户信息
             localStorage.setItem('stringlight_token', response.token);
-            localStorage.setItem('stringlight_user', response.user.email);
+            const identifier = response.user.email || response.user.phone || '用户';
+            localStorage.setItem('stringlight_user', identifier);
             
-            alert('登录成功！欢迎回来，' + response.user.email);
+            alert('登录成功！欢迎回来，' + identifier);
             
             // 关闭弹窗
             const loginModal = document.getElementById('loginModal');
@@ -93,8 +94,10 @@ async function handleLogin(event) {
             await checkLoginStatus();
             
             // 清空表单
-            document.getElementById('email').value = '';
-            document.getElementById('password').value = '';
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            if (emailInput) emailInput.value = '';
+            if (passwordInput) passwordInput.value = '';
         }
     } catch (error) {
         alert(error.message || '登录失败，请检查邮箱和密码');
@@ -117,7 +120,7 @@ function handleLogout() {
     }
 }
 
-// 通用：打开弹窗
+// 通用：打开登录弹窗
 function openLoginModal() {
     const loginModal = document.getElementById('loginModal');
     if (loginModal) {
@@ -125,10 +128,171 @@ function openLoginModal() {
     }
 }
 
-// 通用：关闭弹窗
+// 通用：关闭登录弹窗
 function closeLoginModal() {
     const loginModal = document.getElementById('loginModal');
     if (loginModal) {
         loginModal.style.display = 'none';
+    }
+}
+
+// 打开注册弹窗
+function openRegisterModal() {
+    const registerModal = document.getElementById('registerModal');
+    if (registerModal) {
+        registerModal.style.display = 'flex';
+    }
+}
+
+// 关闭注册弹窗
+function closeRegisterModal() {
+    const registerModal = document.getElementById('registerModal');
+    if (registerModal) {
+        registerModal.style.display = 'none';
+        // 清空表单
+        const form = document.getElementById('registerForm');
+        if (form) {
+            form.reset();
+        }
+        // 重置验证码按钮
+        const sendCodeBtn = document.getElementById('sendCodeBtn');
+        if (sendCodeBtn) {
+            sendCodeBtn.disabled = false;
+            sendCodeBtn.innerText = '发送验证码';
+        }
+    }
+}
+
+// 发送验证码
+let countdownTimer = null;
+async function sendVerificationCode() {
+    const phoneInput = document.getElementById('registerPhone');
+    const sendCodeBtn = document.getElementById('sendCodeBtn');
+    
+    if (!phoneInput || !sendCodeBtn) return;
+    
+    const phone = phoneInput.value.trim();
+    
+    // 验证手机号格式
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phone || !phoneRegex.test(phone)) {
+        alert('请输入正确的11位手机号码');
+        phoneInput.focus();
+        return;
+    }
+    
+    // 禁用按钮
+    sendCodeBtn.disabled = true;
+    sendCodeBtn.innerText = '发送中...';
+    
+    try {
+        const response = await smsAPI.sendCode(phone);
+        
+        if (response.success) {
+            alert('验证码已发送！' + (response.code ? `\n验证码：${response.code}（开发环境）` : ''));
+            
+            // 开始倒计时
+            let countdown = 60;
+            sendCodeBtn.innerText = `${countdown}秒后重发`;
+            
+            countdownTimer = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    sendCodeBtn.innerText = `${countdown}秒后重发`;
+                } else {
+                    clearInterval(countdownTimer);
+                    sendCodeBtn.disabled = false;
+                    sendCodeBtn.innerText = '发送验证码';
+                }
+            }, 1000);
+        }
+    } catch (error) {
+        alert(error.message || '发送验证码失败，请稍后重试');
+        sendCodeBtn.disabled = false;
+        sendCodeBtn.innerText = '发送验证码';
+    }
+}
+
+// 处理注册提交
+async function handleRegister(event) {
+    event.preventDefault();
+    
+    const phoneInput = document.getElementById('registerPhone');
+    const codeInput = document.getElementById('registerCode');
+    const passwordInput = document.getElementById('registerPassword');
+    const passwordConfirmInput = document.getElementById('registerPasswordConfirm');
+    const submitBtn = document.querySelector('#registerForm .submit-btn');
+    
+    if (!phoneInput || !codeInput || !passwordInput || !passwordConfirmInput) return;
+    
+    const phone = phoneInput.value.trim();
+    const code = codeInput.value.trim();
+    const password = passwordInput.value;
+    const passwordConfirm = passwordConfirmInput.value;
+    
+    // 验证输入
+    if (!phone || !code || !password || !passwordConfirm) {
+        alert('请填写完整信息');
+        return;
+    }
+    
+    // 验证手机号格式
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+        alert('请输入正确的11位手机号码');
+        phoneInput.focus();
+        return;
+    }
+    
+    // 验证验证码格式
+    if (!/^\d{6}$/.test(code)) {
+        alert('请输入6位数字验证码');
+        codeInput.focus();
+        return;
+    }
+    
+    // 验证密码
+    if (password.length < 6) {
+        alert('密码长度至少为6位');
+        passwordInput.focus();
+        return;
+    }
+    
+    // 验证两次密码是否一致
+    if (password !== passwordConfirm) {
+        alert('两次输入的密码不一致');
+        passwordConfirmInput.focus();
+        return;
+    }
+    
+    // 禁用提交按钮
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = '注册中...';
+    }
+    
+    try {
+        const response = await authAPI.register(phone, code, password, passwordConfirm);
+        
+        if (response.success) {
+            // 保存token和用户信息
+            localStorage.setItem('stringlight_token', response.token);
+            localStorage.setItem('stringlight_user', phone);
+            
+            alert('注册成功！欢迎加入 Stringlight');
+            
+            // 关闭注册弹窗
+            closeRegisterModal();
+            
+            // 刷新页面状态
+            await checkLoginStatus();
+        }
+    } catch (error) {
+        alert(error.message || '注册失败，请稍后重试');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = '立即注册';
+        }
     }
 }
