@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于我们 - Stringlight 弦动光年</title>
+    <link rel="icon" href="images/logo32x32.png" type="image/png">
+    <style>
+        /* --- 复用全局变量与基础样式 --- */
+        :root {
+            --primary-color: #ffb700;
+            --secondary-color: #2c2c63;
+            --accent-green: #33db00;
+            --text-color: #4b5056;
+            --light-bg: #f4f6f8;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; color: var(--text-color); line-height: 1.8; background-color: var(--light-bg); }
+        a { text-decoration: none; color: inherit; transition: 0.3s; }
+        ul { list-style: none; }
+
+        /* --- 导航栏样式 (复用) --- */
+        header { background-color: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; width: 100%; top: 0; z-index: 1000; }
+        nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; }
+        .logo { font-size: 24px; font-weight: 800; color: var(--secondary-color); display: flex; align-items: center; }
+        .logo span { color: var(--primary-color); }
+        .nav-logo-img { height: 35px; width: auto; margin-right: 10px; display: block; object-fit: contain; }
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        .nav-links a { font-weight: 600; font-size: 16px; color: var(--secondary-color); display: flex; align-items: center; gap: 5px; }
+        .nav-links a:hover { color: var(--primary-color); }
+        .cta-btn { background-color: var(--accent-green); color: white !important; padding: 8px 20px; border-radius: 50px; font-weight: bold; }
+        .cta-btn:hover { background-color: #2ab800; transform: translateY(-2px); }
+
+        /* --- 页面特定样式 --- */
+        .page-header {
+            margin-top: 80px; /* 避开固定导航栏 */
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #1a1a3d 100%);
+            color: white;
+            text-align: center;
+            padding: 80px 20px;
+        }
+        .page-header h1 { font-size: 2.5rem; margin-bottom: 20px; }
+        .page-header p { font-size: 1.2rem; opacity: 0.9; max-width: 800px; margin: 0 auto; }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 60px 20px; }
+        
+        .intro-section { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 15px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
+            margin-bottom: 60px;
+            text-align: justify;
+        }
+        .intro-section h2 { color: var(--secondary-color); margin-bottom: 20px; border-bottom: 2px solid var(--primary-color); display: inline-block; padding-bottom: 5px; }
+        .intro-section p { margin-bottom: 15px; font-size: 1.05rem; }
+
+        /* 复用 Feature Row (图文混排) */
+        .feature-row { display: flex; align-items: center; gap: 50px; margin-bottom: 80px; }
+        .feature-row:nth-child(even) { flex-direction: row-reverse; } /* 偶数行图片在左 */
+        .feature-text { flex: 1; }
+        .feature-text h2 { font-size: 2rem; color: var(--secondary-color); margin-bottom: 15px; }
+        .feature-text h3 { font-size: 1.3rem; color: var(--accent-green); margin-top: 20px; margin-bottom: 10px; }
+        .feature-img {
+            flex: 1;
+            height: 350px;
+            background-color: #ddd;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .feature-img img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- Footer (复用) --- */
+        footer {
+            background-color: #333; /* 如果没有背景图，用深色背景兜底 */
+            background-image: url('images/website_background.png');
+            background-size: cover;
+            background-position: center;
+            color: #5c5555;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .social-icons { display: flex; justify-content: center; gap: 25px; margin-bottom: 20px; align-items: center; }
+        .social-icon-img { width: 32px; height: 32px; object-fit: contain; opacity: 0.7; transition: 0.3s; }
+        .social-icon-img:hover { transform: scale(1.2); opacity: 1; }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .feature-row, .feature-row:nth-child(even) { flex-direction: column; }
+            .feature-img { width: 100%; height: 250px; }
+            .nav-links { display: none; } /* 这里简化处理，实际需配合JS实现汉堡菜单 */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 导航栏 (保持与首页一致) -->
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html" style="display:flex; align-items:center;">
+                    <img src="images/logo.png" alt="Stringlight Logo" class="nav-logo-img">
+                    String<span>light</span>
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#mechanical">🔧 机械</a></li>
+                <li><a href="index.html#programming">💻 编程</a></li>
+                <li><a href="index.html#design">🎨 设计</a></li>
+                <li><a href="community.html">👥 社区</a></li>
+                <li><a href="about.html" style="color: var(--primary-color);">🏢 关于我们</a></li>
+                <li><a href="index.html#store" class="cta-btn">购买套件</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- 页面标题头 -->
+    <section class="page-header">
+        <h1>弦动光年：创造你独一无二的机器人伙伴</h1>
+        <p>让科技温暖地融入生活的每一段旅程</p>
+    </section>
+
+    <!-- 主内容区 -->
+    <div class="container">
+        
+        <!-- 公司简介 -->
+        <section class="intro-section">
+            <h2>我们的愿景</h2>
+            <p><strong>让每个人都拥有自己独一无二的机器人。</strong></p>
+            <p>弦动光年（Stringlight）成立于2025年6月，是一家专注于人形机器人多场景应用技术研发的创新企业。核心团队源自清华大学，在模块化本体设计、动态平衡算法、机器人交互设计及大语言模型融合等关键领域，拥有全栈自研能力。</p>
+            <p>我们相信，科技的灵魂在于赋予每个生命独特的陪伴与成长。因此，我们致力于为孩子、青年与老人这三个构筑我们社会的核心群体，量身定制属于他们自己的机器人伙伴。</p>
+        </section>
+
+        <!-- 针对孩子的部分 -->
+        <div class="feature-row">
+            <div class="feature-text">
+                <h2>对于孩子：陪伴成长的每一步</h2>
+                <p>我们为孩子开启的，是一段从“消费者”到“创造者”的奇妙旅程。</p>
+
+                <h3>🚀 创造的启蒙</h3>
+                <p>我们为中小学至大学提供全链条机器人课程。孩子们将通过3D打印设计、机械电路装配、图形化编程乃至LLM大语言模型接入，亲手将一个想法变为一个能动作、会对话的机器人伙伴。这不仅是STEAM教育，更是想象力、动手能力与解决问题能力的全面锻炼。</p>
+
+                <h3>❤️ 知心的伙伴</h3>
+                <p>诞生于自己手中的小机器人，更是孩子专属的成长知己。它能陪孩子复习功课、讲述睡前故事、进行启发式的对话。更重要的是，它能成为情绪的树洞，通过积极的互动与心理疏导算法，守护孩子的心灵健康，让他们在科技的热爱中，自然地从冰冷屏幕回归到有温度的实体互动。</p>
+            </div>
+            <div class="feature-img">
+                <!-- 请替换下面的 src 为真实图片路径 -->
+                <img src="images/product_toto.jpg" alt="模块化教育陪伴机器人TOTO" title="模块化教育陪伴机器人TOTO">
+                <!-- 如果没有图片，可以用下面的文字提示 -->
+                <!-- <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;">产品图1：TOTO</div> -->
+            </div>
+        </div>
+
+        <!-- 针对青年的部分 -->
+        <div class="feature-row">
+            <div class="feature-text">
+                <h2>对于青年：情绪港湾与生活伴侣</h2>
+                <p>步入社会的青年，面对快节奏的生活与无形的压力，更需要一个忠实的倾听者与得力助手。</p>
+
+                <h3>🌙 情绪的慰藉</h3>
+                <p>我们的机器人是24小时在线的贴心好友。它善于倾听工作烦恼、生活琐事，能进行有深度的交流，提供正向的情感支持，成为独处时的心灵慰藉，缓解孤独与焦虑。</p>
+
+                <h3>⚡ 高效的伴侣</h3>
+                <p>它更是聪明的个人助理，能帮助管理日程、设定提醒、快速查询信息、控制智能家居，在追求效率的时代，为青年群体节省宝贵精力，提升生活品质。</p>
+            </div>
+            <div class="feature-img">
+                <!-- 请替换下面的 src 为真实图片路径 -->
+                <img src="images/product.jpg" alt="模块化智能陪伴机器人BOBO" title="模块化智能陪伴机器人BOBO">
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="logo" style="justify-content: center; margin-bottom: 20px;">String<span>light</span></div>
+            <div class="social-icons">
+                <a href="#"><img src="images/icon_wechat.png" alt="WeChat" class="social-icon-img"></a>
+                <a href="#"><img src="images/icon_douyin.png" alt="Douyin" class="social-icon-img"></a>
+                <a href="#"><img src="images/icon_bilibili.png" alt="Bilibili" class="social-icon-img"></a>
+                <a href="#"><img src="images/icon_github.png" alt="GitHub" class="social-icon-img"></a>
+            </div>
+            <p>&copy; 2025 Stringlight 弦动光年. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

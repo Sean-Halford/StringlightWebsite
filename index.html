@@ -542,6 +542,7 @@
                 <li><a href="#programming">💻 编程</a></li>
                 <li><a href="#design">🎨 设计</a></li>
                 <li><a href="community.html">👥 社区</a></li>
+                <li><a href="about.html">🏢 关于我们</a></li>
                 <li><a href="#store" class="cta-btn">购买套件</a></li>
                 
                 <!-- 登录按钮 (ID必须是 loginItem) -->
@@ -795,49 +796,7 @@
             navLinks.classList.toggle('active');
         });
 
-        // --- 登录逻辑 ---
-        const modal = document.getElementById('loginModal');
-        const loginItem = document.getElementById('loginItem');
-        const userProfile = document.getElementById('userProfile');
-
-        // 打开弹窗
-        function openLoginModal() {
-            modal.style.display = 'flex';
-        }
-
-        // 关闭弹窗
-        function closeLoginModal() {
-            modal.style.display = 'none';
-        }
-
-        // 点击遮罩层关闭
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
-
-        // 处理登录提交（模拟）
-        function handleLogin(event) {
-            event.preventDefault(); // 阻止表单刷新页面
-            
-            // 获取输入（实际项目中这里会发送到服务器验证）
-            const email = document.getElementById('email').value;
-            
-            // 模拟加载
-            const btn = document.querySelector('.submit-btn');
-            const originalText = btn.innerText;
-            btn.innerText = '登录中...';
-            
-            setTimeout(() => {
-                // 模拟登录成功
-                modal.style.display = 'none';
-                loginItem.style.display = 'none'; // 隐藏登录按钮
-                userProfile.style.display = 'flex'; // 显示用户信息
-                btn.innerText = originalText;
-                alert('欢迎回来，' + email);
-            }, 1000);
-        }
+        // --- 微信公众号弹窗逻辑 ---
 
         // --- 微信公众号弹窗逻辑 ---
         const wechatModal = document.getElementById('wechatModal');
@@ -850,15 +809,13 @@
             wechatModal.style.display = 'none';
         }
 
-        // 统一的遮罩层点击关闭逻辑
-        window.onclick = function(event) {
-            if (event.target == loginModal) {
-                loginModal.style.display = "none";
-            }
+        // 统一的遮罩层点击关闭逻辑（登录弹窗的关闭逻辑在auth.js中处理）
+        window.addEventListener('click', function(event) {
+            const wechatModal = document.getElementById('wechatModal');
             if (event.target == wechatModal) {
                 wechatModal.style.display = "none";
             }
-        }
+        });
         
 
         // --- Hero 轮播图逻辑 (无缝无限轮播版) ---
@@ -975,6 +932,7 @@
 
 
     </script>
+    <script src="js/api.js"></script>
     <script src="js/auth.js"></script> 
 
     <script src="js/particles.js"></script>

@@ -1,13 +1,14 @@
 // js/auth.js
+// 注意：此文件依赖于 js/api.js
 
 // 1. 页面加载时检查登录状态
 document.addEventListener('DOMContentLoaded', function() {
     checkLoginStatus();
 });
 
-// 检查 localStorage 中是否有用户信息
-function checkLoginStatus() {
-    const currentUser = localStorage.getItem('stringlight_user');
+// 检查登录状态
+async function checkLoginStatus() {
+    const token = localStorage.getItem('stringlight_token');
     const loginItem = document.getElementById('loginItem');
     const userProfile = document.getElementById('userProfile');
     const userEmailDisplay = document.getElementById('userEmailDisplay');
@@ -15,51 +16,93 @@ function checkLoginStatus() {
     // 确保页面上存在这些元素（防止报错）
     if (!loginItem || !userProfile) return;
 
-    if (currentUser) {
-        // 已登录状态
-        loginItem.style.display = 'none';
-        userProfile.style.display = 'flex';
-        if (userEmailDisplay) {
-            // 显示用户名的前两个字符
-            userEmailDisplay.innerText = currentUser.substring(0, 2).toUpperCase(); 
+    if (token) {
+        try {
+            // 验证token是否有效
+            const response = await authAPI.getCurrentUser();
+            if (response.success) {
+                // 已登录状态
+                loginItem.style.display = 'none';
+                userProfile.style.display = 'flex';
+                const email = response.user.email;
+                if (userEmailDisplay) {
+                    // 显示用户名的前两个字符
+                    userEmailDisplay.innerText = email.substring(0, 2).toUpperCase();
+                }
+                // 保存用户信息
+                localStorage.setItem('stringlight_user', email);
+            } else {
+                // token无效，清除
+                localStorage.removeItem('stringlight_token');
+                localStorage.removeItem('stringlight_user');
+                loginItem.style.display = 'block';
+                userProfile.style.display = 'none';
+            }
+        } catch (error) {
+            // token无效或过期，清除
+            console.error('验证登录状态失败:', error);
+            localStorage.removeItem('stringlight_token');
+            localStorage.removeItem('stringlight_user');
+            loginItem.style.display = 'block';
+            userProfile.style.display = 'none';
         }
     } else {
         // 未登录状态
-        loginItem.style.display = 'block'; // 或者 'flex' 取决于你的CSS
+        loginItem.style.display = 'block';
         userProfile.style.display = 'none';
     }
 }
 
 // 2. 处理登录提交
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault(); // 阻止表单跳转
 
-    const emailInput = document.getElementById('email').value;
+    const emailInput = document.getElementById('email').value.trim();
     const passwordInput = document.getElementById('password').value;
 
-    // 简单模拟验证 (实际项目中这里会请求后端接口)
-    if (emailInput && passwordInput) {
-        // 将用户信息存入浏览器缓存 (持久化)
-        localStorage.setItem('stringlight_user', emailInput);
+    if (!emailInput || !passwordInput) {
+        alert('请输入邮箱和密码');
+        return;
+    }
 
-        // 模拟加载效果
-        const btn = document.querySelector('.submit-btn');
+    const btn = document.querySelector('#loginForm .submit-btn');
+    const originalText = btn ? btn.innerText : '立即登录';
+    
+    if (btn) {
         btn.innerText = '登录中...';
+        btn.disabled = true;
+    }
 
-        setTimeout(() => {
-            alert('登录成功！欢迎回来，' + emailInput);
+    try {
+        const response = await authAPI.login(emailInput, passwordInput);
+        
+        if (response.success) {
+            // 保存token和用户信息
+            localStorage.setItem('stringlight_token', response.token);
+            localStorage.setItem('stringlight_user', response.user.email);
+            
+            alert('登录成功！欢迎回来，' + response.user.email);
             
             // 关闭弹窗
-            document.getElementById('loginModal').style.display = 'none';
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal) {
+                loginModal.style.display = 'none';
+            }
             
             // 刷新页面状态
-            checkLoginStatus();
+            await checkLoginStatus();
             
-            // 还原按钮文字
-            btn.innerText = '立即登录';
-        }, 800);
-    } else {
-        alert('请输入账号和密码');
+            // 清空表单
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+        }
+    } catch (error) {
+        alert(error.message || '登录失败，请检查邮箱和密码');
+    } finally {
+        if (btn) {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
     }
 }
 
@@ -67,19 +110,25 @@ function handleLogin(event) {
 function handleLogout() {
     if(confirm("确定要退出登录吗？")) {
         // 清除缓存
+        localStorage.removeItem('stringlight_token');
         localStorage.removeItem('stringlight_user');
         // 刷新状态
         checkLoginStatus();
-        // 或者是 location.reload(); 来强制刷新页面
     }
 }
 
 // 通用：打开弹窗
 function openLoginModal() {
-    document.getElementById('loginModal').style.display = 'flex';
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal) {
+        loginModal.style.display = 'flex';
+    }
 }
 
 // 通用：关闭弹窗
 function closeLoginModal() {
-    document.getElementById('loginModal').style.display = 'none';
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal) {
+        loginModal.style.display = 'none';
+    }
 }
